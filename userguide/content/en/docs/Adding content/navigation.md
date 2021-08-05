@@ -14,11 +14,12 @@ To add a page or section to this menu, add it to the site's `main` menu in eithe
 
 ```yaml
 ---
-title: "Docsy Documentation"
+title: "Welcome to Docsy"
 linkTitle: "Documentation"
 menu:
   main:
     weight: 20
+    pre: <i class='fas fa-book'></i>
 ---
 ```
 
@@ -33,35 +34,28 @@ If you want to add a link to an external site to this menu, add it in `config.to
     url = "https://github.com/google/docsy/"
 ```
 
+### Adding icons to the top-level menu
+
+As described in the [Hugo docs](https://gohugo.io/content-management/menus/#add-non-content-entries-to-a-menu), you can add icons to the top-level menu by using the pre and/or post parameter for main menu items defined in your site's `config.toml` or via page front matter. For example, the following configuration adds the GitHub icon to the GitHub menu item, and a **New!** alert to indicate that this is a new addition to the menu.
+
+```yaml
+[[menu.main]]
+    name = "GitHub"
+    weight = 50
+    url = "https://github.com/google/docsy/"
+    pre = "<i class='fab fa-github'></i>"
+    post = "<span class='alert'>New!</span>" 
+```
+
+You can find a complete list of icons to use in the [FontAwesome documentation](https://fontawesome.com/icons?d=gallery&p=2). Docsy includes the free FontAwesome icons by default.
+
 ### Adding a version drop-down
 
-Depending on your project's releases and versioning, you may want to let your users access "old" versions of your site (how you deploy your archived sites is up to you) to read about previous versions of your project.
+If you add some `[params.versions]` in `config.toml`, the Docsy theme adds a
+version selector drop down to the top-level menu.
 
-If you add some `[params.versions]` in `config.toml`, the Docsy theme adds a version selector drop down to the top-level menu. You specify a URL and a name for each version you would like to add to the menu, as in the following example:
-
-```
-# Add your release versions here
-[[params.versions]]
-  version = "master"
-  url = "https://master.kubeflow.org"
-
-[[params.versions]]
-  version = "v0.2"
-  url = "https://v0-2.kubeflow.org"
-
-[[params.versions]]
-  version = "v0.3"
-  url = "https://v0-3.kubeflow.org"
-```
-
-(don't forget to add your current version so users can navigate back!)
-
-The default version drop-down menu title is `Releases`. To change this, change the `version_menu` parameter in `config.toml`:
-
-```
-version_menu = "Releases"
-```
-
+You can find out more in the guide to 
+[versioning your docs](/docs/adding-content/versioning/).
 
 ### Adding a language drop-down
 
@@ -86,7 +80,35 @@ description: >
 
 To hide a page or section from the menu, set `toc_hide: true` in front matter.
 
-By default, the section menu will show the current section fully expanded all the way down. This may make the left nav too long and difficult to scan for bigger sites. Try setting site param `ui.sidebar_menu_compact = true` in `config.toml`.
+### Section menu options
+
+By default, the section menu shows the current section fully expanded all the way down. This may make the left nav too long and difficult to scan for bigger sites. Try setting site parameter `ui.sidebar_menu_compact = true` in `config.toml`.
+
+With the compact menu (`.ui.sidebar_menu_compact = true`), only the current page's ancestors, siblings and direct descendants are shown. You can use the optional parameter `.ui.ul_show` to set a desired menu depth to always be visible. For example, with `.ui.ul_show = 1` the first menu level is always displayed.
+
+As well as the completely expanded and compact menu options, you can also create a foldable menu by setting the site parameter `ui.sidebar_menu_foldable = true` in `config.toml`. The foldable menu lets users expand and collapse menu sections by toggling arrow icons beside the section parents in the menu.
+
+On large sites (default: > 2000 pages) the section menu is not generated for each page, but cached for the whole section. The HTML classes for marking the active menu item (and menu path) are then set using JS. You can adjust the limit for activating the cached section menu with the optional parameter `.ui.sidebar_cache_limit`.
+
+### Add icons to the section menu
+
+You can add icons to the section menu in the sidebar by setting the `icon` parameter in the page front matter (e.g. `icon: fas fa-tools`). 
+
+You can find a complete list of icons to use in the [FontAwesome documentation](https://fontawesome.com/icons?d=gallery&p=2). Docsy includes the free FontAwesome icons by default.
+
+Out of the box, if you want to use icons, you should define icons for all items on the same menu level in order to ensure an appropriate look. If the icons are used in a different way, individual CSS adjustments are likely necessary.
+
+### Add manual links to the section menu
+
+By default the section menu is entirely generated from your section's pages. If you want to add a manual link to this menu, such as a link to an external site or a page in a different section of your site, you can do this by creating a *placeholder page file* in the doc hierarchy with the appropriate weight and some special parameters in its metadata (frontmatter) to specify the link details. 
+
+To create a placeholder page, create a page file as usual in the directory where you want the link to show up in the menu, and add a `manualLink` parameter to its metadata. If a page has `manualLink` in its metadata, Docsy generates a link for it in the section menu for this page and in the section index (the list of the child pages of a section on a landing page - see [description in the Docsy docs](/docs/adding-content/content/#docs-section-landing-pages)), but the link destination is replaced by the value of `manualLink`. The link text is the `title` (or `linkTitle` if set) of your placeholder page. You can optionally also set the `title` attribute of the link with the parameter `manualLinkTitle` and a link target with `manualLinkTarget` - for example if you want an external link to open in a new tab you can set the link target to `_blank`. Docsy automatically adds `rel=noopener` to links that open new tabs as a security best practice.
+
+ You can also use `manualLink` to add an additional cross reference to another existing page of your site. For internal links you can choose to use the parameter `manualLinkRelref` instead of `manualLink` to use the built-in Hugo function [relref](https://gohugo.io/functions/relref/ "External link to official Hugo Docs"). If `relref` can't find a unique page in your site, Hugo throws a error message.
+
+ {{% alert title="Note" %}}
+ Although all generated menu and landing page links based on your placeholder file are set according to the parameters `manualLink` or `manualLinkRelref`, Hugo still generates a regular HTML site page for the file, albeit one with no generated links to it. To avoid confusion if users accidentally land on a generated placeholder page, we recommend specifying the URL for the external link in the normal content and / or page description of the page.
+ {{% /alert %}}
 
 ## Breadcrumb navigation
 
@@ -208,3 +230,49 @@ Once you've completed these steps, local search is enabled for your site and res
 {{% alert title="Tip" %}}
 If you're [testing this locally](/docs/deployment/#serving-your-site-locally) using Hugo’s local server functionality, you need to build your `offline-search-index.xxx.json` file first by running `hugo`. If you have the Hugo server running while you build `offline-search-index.xxx.json`, you may need to stop the server and restart it in order to see your search results.
 {{% /alert %}}
+
+### Changing the summary length of the local search results
+
+You can customize the summary length by setting `offlineSearchSummaryLength` in `config.toml`.
+
+```
+#Enable offline search with Lunr.js
+offlineSearch = true
+offlineSearchSummaryLength = 200
+```
+
+### Changing the maximum result count of the local search
+
+You can customize the maximum result count by setting `offlineSearchMaxResults` in `config.toml`.
+
+```
+#Enable offline search with Lunr.js
+offlineSearch = true
+offlineSearchMaxResults = 25
+```
+
+### Changing the width of the local search results popover
+
+The width of the search results popover will automatically widen according to the content.
+
+If you want to limit the width, add the following scss into `assets/scss/_variables_project.scss`.
+
+```scss
+body {
+    .popover.offline-search-result {
+        max-width: 460px;
+    }
+}
+```
+
+### Excluding pages from local search results
+
+To exclude pages from local search results, add `exclude_search: true` to the the frontmatter of each page:
+
+```yaml
+---
+title: "Index"
+weight: 10
+exclude_search: true
+---
+```
