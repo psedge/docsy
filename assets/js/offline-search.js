@@ -41,15 +41,20 @@
             data => {
                 idx = lunr(function() {
                     this.ref('ref');
-                    this.field('title', { boost: 2 });
-                    this.field('body');
+                    this.field('title', { boost: 15 });
+                    this.field('description', { boost: 10 });
+                    this.field('body', { boost: 5 });
+                    this.field('tags', { boost: 10 });
 
                     data.forEach(doc => {
                         this.add(doc);
 
                         resultDetails.set(doc.ref, {
                             title: doc.title,
-                            excerpt: doc.excerpt
+                            excerpt: doc.excerpt,
+                            tags: doc.tags,
+                            lastMod: doc.last_mod,
+                            description: doc.description,
                         });
                     });
                 });
@@ -81,7 +86,7 @@
                     tokens.forEach(token => {
                         const queryString = token.toString();
                         q.term(queryString, {
-                            boost: 100
+                            boost: 30
                         });
                         q.term(queryString, {
                             wildcard:
@@ -94,7 +99,8 @@
                         });
                     });
                 })
-                .slice(0, 10);
+                .slice(0, 25)
+                .filter(r => r.score > 2);
 
             //
             // Make result html
@@ -107,11 +113,11 @@
                     .css({
                         display: 'flex',
                         justifyContent: 'space-between',
-                        marginBottom: '1em'
+                        marginBottom: '0'
                     })
                     .append(
                         $('<span>')
-                            .text('Search results')
+                            .text('')
                             .css({ fontWeight: 'bold' })
                     )
                     .append(
@@ -124,8 +130,10 @@
             );
 
             const $searchResultBody = $('<div>').css({
-                maxHeight: `calc(100vh - ${$targetSearchInput.offset().top +
-                    180}px)`,
+                // not sure what the reason for this was, works much better without(?)
+                // maxHeight: `calc(100vh - ${$targetSearchInput.offset().top + 180}px)`,
+                maxHeight: `calc(100vh - 180px)`,
+                minHeight: "150px",
                 overflowY: 'auto'
             });
             $html.append($searchResultBody);
@@ -137,27 +145,64 @@
             } else {
                 results.forEach(r => {
                     const $cardHeader = $('<div>').addClass('card-header');
+                    const $cardHeaderContext = $('<div>').addClass('card-header-context')
                     const doc = resultDetails.get(r.ref);
-                    const href =
-                        $searchInput.data('offline-search-base-href') +
-                        r.ref.replace(/^\//, '');
+                    const href = $searchInput.data('offline-search-base-href') + r.ref.replace(/^\//, '');
 
-                    $cardHeader.append(
-                        $('<a>')
+                    $cardHeader.append($('<a>')
+                            .css('float', 'left')
                             .attr('href', href)
-                            .text(doc.title)
-                    );
+                            .text(doc.title));
+                    $cardHeader.append($('<span>')
+                            .addClass('last-mod')
+                            .text(doc.lastMod.substring(0, 10)));
+                    $cardHeader.append($('<i>')
+                            .addClass('fa')
+                            .addClass('fa-edit')
+                            .addClass('last-mod'));
+
+                    // Build the breadcrumbs path as we iterate it
+                    let breadcrumbsDiv = $('<div>').addClass("breadcrumbs")
+                    let breadcrumbsTrail = ""
+                    let breadcrumbsParts = href.split('/').slice(0, self.length-1)
+
+                    breadcrumbsParts.forEach((p, i) => {
+                        breadcrumbsTrail += p + "/"
+                        breadcrumbsDiv.append($('<a>')
+                                .addClass("search-breadcrumb")
+                                .attr('href', breadcrumbsTrail)
+                                .text(p))
+                        if (i !== breadcrumbsParts.length) breadcrumbsDiv.append($('<span>')
+                                .addClass("search-breadcrumb")
+                                .text('/'))
+                    })
+                    $cardHeaderContext.append(breadcrumbsDiv)
+
+                    let tagsDiv = $('<div>').addClass("tags")
+                    console.log(doc.tags)
+                    if (doc.hasOwnProperty('tags') && doc.tags != undefined && doc.tags.length > 0)
+                        doc.tags.forEach((t) => tagsDiv.append($('<span>')
+                                .addClass('tag')
+                                .addClass('label')
+                                .addClass('label-default')
+                                .text("#" + t)))
+
+                    $cardHeaderContext.append(tagsDiv)
+                    $cardHeader.append($cardHeaderContext)
 
                     const $cardBody = $('<div>').addClass('card-body');
-                    $cardBody.append(
-                        $('<p>')
+
+                    // Appending content to a temporary div, then extracting it gives text without specialchars
+                    if (doc.description !== "" && doc.description != undefined) $cardBody.append($('<p>')
+                                .addClass('card-text description')
+                                .text($('<div>'+doc.description+'</div>').text()));
+
+                    $cardBody.append($('<p>')
                             .addClass('card-text text-muted')
-                            .text(doc.excerpt)
-                    );
+                            .text($('<div>'+doc.excerpt+'</div>').text()));
 
                     const $card = $('<div>').addClass('card');
                     $card.append($cardHeader).append($cardBody);
-
                     $searchResultBody.append($card);
                 });
             }
