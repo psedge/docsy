@@ -1,0 +1,67 @@
+/*
+
+Modifications made to docsy search styling for tink-ab.
+
+*/
+
+.popover {
+    max-width: 750px !important; /* Max Width of the popover (depending on the container!) */
+}
+
+.popover.offline-search-result {
+    .card {
+        margin-bottom: 10px;
+
+        .card-header {
+            padding: 0.5rem 1rem 0.5rem;
+            font-weight: normal;
+
+            .last-mod {
+                font-size: 9pt;
+                color: #888;
+                float: right;
+            }
+
+            .card-header-context {
+                clear: both;
+
+                .breadcrumbs {
+                    font-size: 9pt;
+                    float: left;
+                    width: 55%;
+
+                    & a {
+                        color: #444;
+                    }
+
+                    & a:hover {
+                        color: #999;
+                    }
+                }
+
+                .tags {
+                    font-size: 8pt;
+                    float: left;
+                    width: 45%;
+                    text-align: right;
+
+                    .tag {
+                        font-size: 9pt;
+                        float: right;
+                        display: block;
+                        margin: 0 3px
+                    }
+                }
+            }
+        }
+
+        .card-text {
+            &.description {
+                margin: -8px 0 5px;
+                font-style: italic;
+                color: #222;
+                font-size: 9pt;
+            }
+        }
+    }
+}
